@@ -1,0 +1,69 @@
+# TwitScrape Notes
+
+For usage or design see README.md, these notes exist as a record of discover around Twitter's API and it's mitigations
+for unauthenticated API access.
+
+This document is semi-chronological, so assumptions that were discovered to be false are still included.
+
+## Initial Discovery
+
+All exploration was done via Tor browser
+Going to https://twitter.com gives a login page, but going directly to a handle shows recent tweets
+First access through Tor had errors in user tweet feed, network tab revealed API requests were receiving an HTTP 429: Too Many Requests Error
+Getting a fresh Tor Circuit with Ctrl + Shift + U resolved this issue
+While viewing Twitter, regular POST requests are made to https://api.twitter.com/1.1/jot/client_event.json
+
+### GraphQL Discovery
+
+When viewing a users page, tweet information appears to be requested by GET requests to endpoints off https://twitter.com/i/api/graphql/
+The GraphQL URLs appear to be of the format PREFIX/graphql/QUERY_ID/QUERY_NAME?variables=VARIABLES
+QUERY_ID is 22 characters, appears to be Base62 or similar
+QUERY_NAME is human readable name for query
+
+Example queries:
+- Vf8si2dfZ1zmah8ePYPjDQ/UserByScreenNameWithoutResults
+- L15nBTK_B0O_NMEpnsH4MQ/UserTweets
+- EsxXiWCpquxISR6B1E2jaQ/UserMedia
+- 0CZlcW9Um6td7cYVUA1MzA/TopicToFollowSidebar
+
+Changing the QUERY_ID by a character leads to a 404
+Changing the QUERY_NAME, including to a valid query name from a different endpoint returns, for example, `Unknown operation name 'UserTweets'`
+Connecting with a new Tor circuit / identity gave the same combinations of QUERY_ID/QUERY_NAME
+
+### Authorization Header
+
+All API requests are made with a Bearer Authorization token of some kind, not a valid JWT
+Refreshing the page still uses the same token
+Changing tor circuit + clearing browser data, also uses the same token
+Possibly some static token?
+
+### Editing Requests
+
+Resending a GraphQL request with identical headers/URL succeeds
+However, changing a variable, while keeping the same headers leads to a 400 with no response body.
+
+This turned out to be a false positive, as the difference was that the Firefox request editor did not URL encode the query string
+
+### Other Headers
+
+By removing headers and checking whether the API requests succeeded, it became apparent that the only required twitter specific headers were:
+- authorization - Static as mentioned above
+- x-guest-token - Changed per session, persisted between page refreshes
+
+### Guest Token
+
+As the x-guest-token appeared on all API requests,
+By starting a fresh tor identity and viewing the network request timeline, I identified the first request with the x-guest-token header.
+Due to the common pattern of javascript chaining promises, dependent requests can often be discovered by for finding a request that completes right before the next request begins.
+Using this technique, I discovered a POST request to https://api.twitter.com/1.1/guest/activate.json which returned a JSON response with the key guest_token.
+Side note: A potential way of identifying masqueraded Twitter API requests (at least through non-US Tor exit nodes), is to look for higher latency during connection establishment due to not hitting a CDN.
+
+By making the activate.json request and using the resulting guest id, unauthenticated requests can now be made.
+
+## Other Discoveries
+
+### GraphQL Server Framework
+
+By modifying a variable name in a query to be invalid, I received an error which included reference to `sangria.validation.VarTypeMismatchViolation`
+Searching for this term revealed that Sangria is a scala GraphQL library
+

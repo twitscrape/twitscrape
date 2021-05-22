@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "twitscrape"
+version = "0.1.0"
+description = ""
+authors = ["Jack"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+torpy = {extras = ["requests"], version = "^1.1.6"}
+pydantic = "^1.8.2"
+typer = "^0.3.2"
+
+[tool.poetry.dev-dependencies]
+black = "^21.5b1"
+
+[tool.poetry.scripts]
+twitscrape = "twitscrape.cli:cli"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

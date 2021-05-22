@@ -1,0 +1,3 @@
+torpy[requests]
+pydantic
+typer
