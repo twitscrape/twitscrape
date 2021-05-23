@@ -34,6 +34,7 @@ Arguments:
   USERNAME  [required]
 
 Options:
+  --serve / --no-serve        Start a webserver to serve all tweets so far [default: False]
   --count INTEGER             Number of initial tweets to get  [default: 5]
   --retweets / --no-retweets  Include retweets  [default: False]
   --minutes FLOAT             Time between checking for tweets  [default: 10.0]
@@ -44,6 +45,16 @@ Get the most recent **COUNT** many tweets from a user, and then periodically dis
 twitscrape stream username
 ```
 
+Start an HTTP server to provide all tweets received so far
+```bash
+twitscrape stream username --serve
+```
+By default, the server binds to 0.0.0.0:8000, but can be changed by specifying the HOST and PORT environment variables.
+
+With default settings, a JSON representation can be requested with
+```bash
+curl http://localhost:8000/
+```
 
 ### Getting Tweets
 
@@ -107,7 +118,8 @@ an HTTP status this is not 200 (successful) or 404 (see below).
 The unrecoverable errors of note are:
 
 - 404 - Likely indicates a change in the prepared queries leading to an API incompatibility
-- 200, but errors in response - Unless the query expects possible GraphQL errors, this indicates a likely error in our usage of the API
+- 200, but errors in response - Unless the query expects possible GraphQL errors, this indicates a likely error in our
+  usage of the API
 
 ### Business Logic Layer
 
@@ -125,6 +137,13 @@ The CLI layer uses the `typer` library (which in-turn wraps `click`), as it prov
 
 The `@cli.command` decorator uses the name and type signatures of the functions it wraps to automatically generate CLI
 docs accessible via `--help`.
+
+### HTTP API
+
+The HTTP API logic is defined in `twitscrape/app.py` and starts a second process for scraping the tweets, which it
+communicates with via a pipe. The design choice of using a separate process was due to the chosen tor library not
+supporting asyncio, and as such using at least a separate thread is prefered, the choice of using a separate process is
+due to the ability for Python to kill a process on termination, but not easily a thread.
 
 
 ## Assumptions

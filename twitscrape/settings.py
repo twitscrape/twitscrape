@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     batch_count: int = Field(
         20, description="Number of responses to query for when paginating"
     )
+    host: str = Field("0.0.0.0", description="Host to bind to for web server")
+    port: int = Field(8000, description="Port to bind to for web server")
 
 
 settings = Settings()

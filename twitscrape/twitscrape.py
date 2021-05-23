@@ -2,6 +2,7 @@ import logging
 import itertools
 import time
 from datetime import datetime, timezone
+from multiprocessing.connection import Connection
 from typing import Optional, Iterator, List
 
 from twitscrape.models import Tweet, TweetsWithCursors
@@ -161,3 +162,23 @@ def _get_user_tweets_batch(
         cursor_previous=cursor_previous,
         pinned_tweet=pinned_tweet,
     )
+
+
+def send_streamed_tweets(
+    send_conn: Connection,
+    user_id: str,
+    initial_count: int = 5,
+    polling_seconds: int = 10 * 60,
+    include_retweets: bool = True,
+):
+    """
+    Stream tweets as per stream_tweats sending over multiprocessing pipe to parent process
+    """
+    stream = stream_tweets(
+        user_id=user_id,
+        initial_count=initial_count,
+        polling_seconds=polling_seconds,
+        include_retweets=include_retweets,
+    )
+    for tweet in stream:
+        send_conn.send(tweet)

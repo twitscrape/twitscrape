@@ -26,6 +26,9 @@ def get(
 @cli.command()
 def stream(
     username: str,
+    serve: bool = typer.Option(
+        False, help="Start a webserver to serve all tweets so far"
+    ),
     count: int = typer.Option(5, help="Number of initial tweets to get"),
     include_retweets: bool = typer.Option(
         False, "--retweets/--no-retweets", help="Include retweets"
@@ -37,10 +40,20 @@ def stream(
     """
     user_id = query_user_id(username)
     polling_seconds = int(minutes * 60)
-    for tweet in stream_tweets(
-        user_id,
-        initial_count=count,
-        polling_seconds=polling_seconds,
-        include_retweets=include_retweets,
-    ):
-        print(tweet.get_body())
+    if serve:
+        from twitscrape.app import run_app
+
+        run_app(
+            user_id,
+            initial_count=count,
+            polling_seconds=polling_seconds,
+            include_retweets=include_retweets,
+        )
+    else:
+        for tweet in stream_tweets(
+            user_id,
+            initial_count=count,
+            polling_seconds=polling_seconds,
+            include_retweets=include_retweets,
+        ):
+            print(tweet.get_body())
