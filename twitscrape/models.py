@@ -29,6 +29,9 @@ class Tweet(BaseModel):
         )
 
     def get_body(self):
+        """
+        Get the text content if an original tweet, otherwise the text of the the retweeted original
+        """
         if self.retweeted_status is None:
             return self.text
         return self.retweeted_status.get_body()

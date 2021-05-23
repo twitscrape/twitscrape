@@ -148,6 +148,12 @@ due to the ability for Python to kill a process on termination, but not easily a
 
 ## Assumptions
 
+### Specification Assumptions
+
+- When runnning the REST API, it is acceptable for the logs to be displayed as well as the tweets
+
+### Twitter Assumptions
+
 The application consumes Twitter's un-documented prepared-query GraphQL API.
 
 Any breaking changes to that API may lead to this tool no longer working.
