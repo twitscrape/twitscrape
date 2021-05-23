@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 from requests.exceptions import RequestException
+
 from twitscrape.session import twitter_session
 from twitscrape.settings import settings
 

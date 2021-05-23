@@ -1,13 +1,12 @@
 import asyncio
+from multiprocessing import Process, Pipe
 from typing import List
 
 from fastapi import FastAPI
 
-from multiprocessing import Process, Pipe
-
+from twitscrape.models import Tweet
 from twitscrape.settings import settings
 from twitscrape.twitscrape import send_streamed_tweets
-from twitscrape.models import Tweet
 
 tweets: List[Tweet] = []
 recv, send = Pipe(duplex=False)
