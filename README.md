@@ -14,7 +14,7 @@ From the root of the repository, install `twitscrape` and it's dependencies with
 poetry install
 ```
 
-## Usage
+## Usage (Native)
 
 For CLI help, pass `--help` to the command, or the relevant subcommand
 
@@ -79,6 +79,18 @@ twitscrape get --count 10 username
 ````
 By default, retweets won't be included. To include retweets, pass `--retweets` to the command.
 
+
+## Usage (Docker)
+
+Build the container image
+```bash
+docker build -t twitscrape .
+```
+
+Run the container, in this example streaming tweets from the user `liveoverflow` and exposing the REST API on port 8000
+```bash
+docker run -t -p 8000:8000 --rm twitscrape stream liveoverflow --serve
+```
 
 ## Design
 
